@@ -1,24 +1,17 @@
 package com.company.translateitnative;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import android.view.MotionEvent;
 import java.util.List;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
-import android.view.View.OnAttachStateChangeListener;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.inputmethod.EditorInfo;
@@ -32,12 +25,10 @@ import android.widget.Spinner;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.widget.TabHost;
+import android.widget.TabHost.OnTabChangeListener;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
-
-import org.json.*;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "TranslateItNative"; 
@@ -87,13 +78,23 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-	private OnEditorActionListener submitSearchQuery = new OnEditorActionListener() {
+	private TextView.OnEditorActionListener submitSearchQuery = new TextView.OnEditorActionListener() {
 		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			/*if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) { 
+				translate();
+			}*/
+			/*if (actionId == EditorInfo.IME_ACTION_NEXT) {
+				translate();
+			}*/
+			Log.i(DEBUG_TAG, "-" + actionId + "-");
+//			return true;
 			if (   actionId == EditorInfo.IME_ACTION_SEARCH
 				|| actionId == EditorInfo.IME_ACTION_DONE
 				|| event.getAction() == KeyEvent.ACTION_DOWN
 				&& event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-		        				
+		        
+//				Log.i(DEBUG_TAG, "123");
+				
 				// the user is done typing. 
 				translate();
 				
@@ -101,6 +102,24 @@ public class MainActivity extends Activity {
 		    }
 			// pass on to other listeners
 		    return false;
+		}
+	};
+	
+	private OnTabChangeListener switchTab = new OnTabChangeListener() {
+		public void onTabChanged (String tabId) {
+			List<String> empty = new ArrayList<String>();
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, empty);
+			
+			if (tabId == "tabPhrases") {
+				ListView resultPhrases = (ListView) findViewById(R.id.resultsPhrases);
+				resultPhrases.setAdapter(adapter);
+			} else if (tabId == "tabWords") {
+				ListView resultWords = (ListView) findViewById(R.id.resultsWords);
+				resultWords.setAdapter(adapter);
+			}
+			
+			EditText searchQueryInput = (EditText) findViewById(R.id.search_query_input);
+			searchQueryInput.setText("");
 		}
 	};
 	
@@ -112,10 +131,10 @@ public class MainActivity extends Activity {
 		Spinner languageFrom = (Spinner) findViewById(R.id.language_from);
 		Spinner languageTo = (Spinner) findViewById(R.id.language_to);
 		// default to english
-		languageFrom.setSelection(4);
+		languageFrom.setSelection(1);
 		languageFrom.setOnItemSelectedListener(changeFromLanguage);
 		// default to russian
-		languageTo.setSelection(19);
+		languageTo.setSelection(5);
 		languageTo.setOnItemSelectedListener(changeToLanguage);
 		
 		ImageButton switchLanguagesButton = (ImageButton) findViewById(R.id.switch_languages);
@@ -150,6 +169,8 @@ public class MainActivity extends Activity {
 		
 		tabHost.addTab(resultsWords);
 		tabHost.addTab(resultsPhrases);
+		
+		tabHost.setOnTabChangedListener(switchTab);
 	}
 
 	@Override
@@ -160,10 +181,14 @@ public class MainActivity extends Activity {
 	}
 	
 	public void translate() {
-		ListView translationsList;
+//		ListView translationsList;
 		
 		EditText searchQueryInputField = (EditText) findViewById(R.id.search_query_input);
 		String textToTranslate = searchQueryInputField.getText().toString();
+		
+		// hide keyboard
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(searchQueryInputField.getWindowToken(), 0);
 		
 		Log.i(DEBUG_TAG, textToTranslate);
 		
@@ -173,7 +198,7 @@ public class MainActivity extends Activity {
 		
 		Log.i(DEBUG_TAG, languageFromCode + " " + languageToCode);
 		
-		List<String> results = new ArrayList<String>();
+//		List<String> results = new ArrayList<String>();
 		
 		TabHost tabHost = (TabHost) findViewById(android.R.id.tabhost);
 		String currentTabTag = tabHost.getCurrentTabTag();
@@ -181,7 +206,26 @@ public class MainActivity extends Activity {
 		Log.i(DEBUG_TAG, currentTabTag);
 		
 		if (currentTabTag == "tabWords") {
-			translationsList = (ListView) findViewById(R.id.resultsWords);
+//			translationsList = (ListView) findViewById(R.id.resultsWords);
+			
+			String url = "http://translateit.hostei.com/ajax/test_translation_service.php";
+			String charset = "UTF-8";			
+			String query = null;
+			
+			try {
+				query = String.format("languageFrom=%s&languageTo=%s&textToTranslate=%s&maxTranslations=%s", 
+					 URLEncoder.encode(languageFromCode, charset), 
+					 URLEncoder.encode(languageToCode, charset),
+					 URLEncoder.encode(textToTranslate, charset),
+					 URLEncoder.encode("10", charset));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			
+			View mainAppWindow = (View) findViewById(R.id.main_app_window);
+			TranslatePhrasesTask task = new TranslatePhrasesTask(this, mainAppWindow, "words");
+			task.execute(url + "?" + query);
+			
 		} else if (currentTabTag == "tabPhrases") {
 			String url = "https://translate.yandex.net/api/v1.5/tr.json/translate";
 			String charset = "UTF-8";
@@ -199,8 +243,9 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			
-			translationsList = (ListView) findViewById(R.id.resultsPhrases);
-			TranslatePhrasesTask task = new TranslatePhrasesTask(this, translationsList, "phrases");
+//			translationsList = (ListView) findViewById(R.id.resultsPhrases);
+			View mainAppWindow = (View) findViewById(R.id.main_app_window);
+			TranslatePhrasesTask task = new TranslatePhrasesTask(this, mainAppWindow, "phrases");
 			task.execute(url + "?" + query);
 			
 			/*translationsList = (ListView) findViewById(R.id.resultsPhrases);

@@ -58,9 +58,8 @@
         android:layout_below="@+id/language_bar"
         android:ems="10"
         android:hint="@string/query_field_hint"
-        android:inputType="text" >
-
-        <requestFocus />
+        android:inputType="text"
+        android:imeOptions="actionSearch" >
     </EditText>
 
     <Button
@@ -101,8 +100,25 @@
 
             <LinearLayout
                 android:id="@+id/tabWords"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
+                
+                <LinearLayout
+			        android:id="@+id/getWordsProgress"
+			        android:layout_width="fill_parent"
+			        android:layout_height="fill_parent"
+			        android:gravity="center"
+			        android:orientation="vertical"
+			        android:visibility="gone" >
+			
+			        <ProgressBar
+			            android:id="@+id/getWordsProgressBar"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            style="?android:attr/progressBarStyleLarge" >
+			        </ProgressBar>
+			    </LinearLayout>
                 
                 <ListView
 			        android:id="@+id/resultsWords"
@@ -113,8 +129,26 @@
 
             <LinearLayout
                 android:id="@+id/tabPhrases"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
+                
+                <LinearLayout
+			        android:id="@+id/getPhrasesProgress"
+			        android:layout_width="fill_parent"
+			        android:layout_height="fill_parent"
+			        android:gravity="center"
+			        android:orientation="vertical"
+			        android:visibility="gone" >
+			
+			        <ProgressBar
+			            android:id="@+id/getPhrasesProgressBar"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            style="?android:attr/progressBarStyleLarge" >
+			        </ProgressBar>
+			    </LinearLayout>
+			    
                 <ListView
 			        android:id="@+id/resultsPhrases"
 			        android:layout_width="match_parent"

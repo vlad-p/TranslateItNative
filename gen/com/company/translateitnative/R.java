@@ -41,18 +41,22 @@ public final class R {
         public static final int switch_languages_icon_chevrons_small=0x7f020008;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a000c;
+        public static final int action_settings=0x7f0a0010;
         public static final int app_header=0x7f0a0001;
+        public static final int getPhrasesProgress=0x7f0a000d;
+        public static final int getPhrasesProgressBar=0x7f0a000e;
+        public static final int getWordsProgress=0x7f0a0009;
+        public static final int getWordsProgressBar=0x7f0a000a;
         public static final int language_bar=0x7f0a0002;
         public static final int language_from=0x7f0a0003;
         public static final int language_to=0x7f0a0005;
         public static final int main_app_window=0x7f0a0000;
-        public static final int resultsPhrases=0x7f0a000b;
-        public static final int resultsWords=0x7f0a0009;
+        public static final int resultsPhrases=0x7f0a000f;
+        public static final int resultsWords=0x7f0a000b;
         public static final int search_button=0x7f0a0007;
         public static final int search_query_input=0x7f0a0006;
         public static final int switch_languages=0x7f0a0004;
-        public static final int tabPhrases=0x7f0a000a;
+        public static final int tabPhrases=0x7f0a000c;
         public static final int tabWords=0x7f0a0008;
     }
     public static final class layout {
