@@ -22,13 +22,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class TranslatePhrasesTask extends AsyncTask<String, String, String> {
+public class TranslateAsyncTask extends AsyncTask<String, String, String> {
 	
 	private Context mainActivityContext;
 	private WeakReference<View> mainAppWindowReference;
 	private String translationType;
 	
-	public TranslatePhrasesTask(Context context, View v, String typeOfTranslation) {
+	public TranslateAsyncTask(Context context, View v, String typeOfTranslation) {
 		mainAppWindowReference = new WeakReference<View>(v);
 		mainActivityContext = context;
 		translationType = typeOfTranslation;

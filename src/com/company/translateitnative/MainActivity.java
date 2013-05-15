@@ -28,7 +28,6 @@ import android.widget.TabHost;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "TranslateItNative"; 
@@ -80,27 +79,18 @@ public class MainActivity extends Activity {
 	
 	private TextView.OnEditorActionListener submitSearchQuery = new TextView.OnEditorActionListener() {
 		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-			/*if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) { 
-				translate();
-			}*/
-			/*if (actionId == EditorInfo.IME_ACTION_NEXT) {
-				translate();
-			}*/
-			Log.i(DEBUG_TAG, "-" + actionId + "-");
-//			return true;
+//			Log.i(DEBUG_TAG, "-" + actionId + "-");
+
 			if (   actionId == EditorInfo.IME_ACTION_SEARCH
 				|| actionId == EditorInfo.IME_ACTION_DONE
 				|| event.getAction() == KeyEvent.ACTION_DOWN
 				&& event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 		        
-//				Log.i(DEBUG_TAG, "123");
-				
-				// the user is done typing. 
 				translate();
 				
 				return true;               
 		    }
-			// pass on to other listeners
+
 		    return false;
 		}
 	};
@@ -180,9 +170,7 @@ public class MainActivity extends Activity {
 		return true;
 	}
 	
-	public void translate() {
-//		ListView translationsList;
-		
+	public void translate() {	
 		EditText searchQueryInputField = (EditText) findViewById(R.id.search_query_input);
 		String textToTranslate = searchQueryInputField.getText().toString();
 		
@@ -190,24 +178,20 @@ public class MainActivity extends Activity {
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(searchQueryInputField.getWindowToken(), 0);
 		
-		Log.i(DEBUG_TAG, textToTranslate);
+//		Log.i(DEBUG_TAG, textToTranslate);
 		
 		String[] languageCodes = getResources().getStringArray(R.array.language_codes);
 		String languageFromCode = languageCodes[languageFrom];
 		String languageToCode = languageCodes[languageTo];
 		
-		Log.i(DEBUG_TAG, languageFromCode + " " + languageToCode);
-		
-//		List<String> results = new ArrayList<String>();
+//		Log.i(DEBUG_TAG, languageFromCode + " " + languageToCode);
 		
 		TabHost tabHost = (TabHost) findViewById(android.R.id.tabhost);
 		String currentTabTag = tabHost.getCurrentTabTag();
 		
-		Log.i(DEBUG_TAG, currentTabTag);
+//		Log.i(DEBUG_TAG, currentTabTag);
 		
-		if (currentTabTag == "tabWords") {
-//			translationsList = (ListView) findViewById(R.id.resultsWords);
-			
+		if (currentTabTag == "tabWords") {		
 			String url = "http://translateit.hostei.com/ajax/test_translation_service.php";
 			String charset = "UTF-8";			
 			String query = null;
@@ -223,7 +207,7 @@ public class MainActivity extends Activity {
 			}
 			
 			View mainAppWindow = (View) findViewById(R.id.main_app_window);
-			TranslatePhrasesTask task = new TranslatePhrasesTask(this, mainAppWindow, "words");
+			TranslateAsyncTask task = new TranslateAsyncTask(this, mainAppWindow, "words");
 			task.execute(url + "?" + query);
 			
 		} else if (currentTabTag == "tabPhrases") {
@@ -243,125 +227,9 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			
-//			translationsList = (ListView) findViewById(R.id.resultsPhrases);
 			View mainAppWindow = (View) findViewById(R.id.main_app_window);
-			TranslatePhrasesTask task = new TranslatePhrasesTask(this, mainAppWindow, "phrases");
+			TranslateAsyncTask task = new TranslateAsyncTask(this, mainAppWindow, "phrases");
 			task.execute(url + "?" + query);
-			
-			/*translationsList = (ListView) findViewById(R.id.resultsPhrases);
-			results = translatePhrase(textToTranslate, languageFromCode, languageToCode);
-			ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results);
-			translationsList.setAdapter(adapter);
-			
-			if (results.isEmpty()) {
-				Context appContext = getApplicationContext();
-				CharSequence msg = "No translations found.";
-				int duration = Toast.LENGTH_SHORT;
-				
-				Toast displayMessage = Toast.makeText(appContext, msg, duration);
-				displayMessage.show();
-			}*/
 		}
-	}
-	
-	public List<String> translateWord(String wordToTranslate) {
-		return null;
-		// tbd
-	}
-	
-/*	public List<String> translatePhrase(String wordToTranslate, String languageFromCode, String languageToCode) {
-		List<String> results = new ArrayList<String>();
-		
-		String url = "https://translate.yandex.net/api/v1.5/tr.json/translate";
-		String charset = "UTF-8";
-		String key = "trnsl.1.1.20130502T083517Z.364dbfbe6df7c456.b87249b5fc8661ebddbcb8a09eea56c995f868a8";
-		String lang = languageFromCode + "-" + languageToCode;
-		String text = wordToTranslate;
-		
-		try {
-			StrictMode.ThreadPolicy policy = new StrictMode.
-                    ThreadPolicy.Builder().permitAll().build();
-                    StrictMode.setThreadPolicy(policy);
-                    
-			String query = String.format("key=%s&lang=%s&text=%s", 
-			     URLEncoder.encode(key, charset), 
-			     URLEncoder.encode(lang, charset),
-			     URLEncoder.encode(text, charset));
-			
-			URL requestURL = new URL(url + "?" + query);
-			
-			HttpURLConnection urlConnection = (HttpURLConnection) requestURL.openConnection();
-			try {		
-				InputStream response = new BufferedInputStream(urlConnection.getInputStream());
-				String responseString = convertStreamToString(response);			
-	//			Log.i(DEBUG_TAG, responseString);
-				
-				try {
-					JSONObject translationsObject = new JSONObject(responseString);
-					JSONArray translations = translationsObject.getJSONArray("text");
-					results.add(translations.getString(0));
-				} catch (JSONException e) {
-				    e.printStackTrace();
-				}
-			} catch(IOException e) {
-				e.printStackTrace();
-			} finally {
-				urlConnection.disconnect();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return results;
-	}*/
-	
-	/*public void translate() {
-		EditText searchQueryInputField = (EditText) findViewById(R.id.search_query_input);
-		String word = searchQueryInputField.getText().toString();
-		Log.i(DEBUG_TAG, word);
-		
-		String[] languageCodes = getResources().getStringArray(R.array.language_codes);
-		String languageFromCode = languageCodes[languageFrom];
-		String languageToCode = languageCodes[languageTo];
-		
-		Log.i(DEBUG_TAG, languageFromCode + " " + languageToCode);
-		
-		List<String> results = new ArrayList<String>();
-		
-		String globalDictionaryString = "{'en': {'ru': {'table': [{ 'type': 'word', 'translation': 'таблица' },{ 'type': 'word', 'translation': 'стол' },{ 'type': 'word', 'translation': 'расписание' },{ 'type': 'term', 'translation': 'табель' },{ 'type': 'term', 'translation': 'рольганг' }],'browser': [{ 'type': 'term', 'translation': 'браузер' },{ 'type': 'term', 'translation': 'программа просмотра' },{ 'type': 'word', 'translation': 'посетитель, рассматривающий товары' }],'checkbox': [{ 'type': 'word', 'translation': 'флажок' },{ 'type': 'term', 'translation': 'чек-бокс' }]}},'ru': {'en': {'таблица': [{ 'type': 'word', 'translation': 'table' },{ 'type': 'word', 'translation': 'chart' },{ 'type': 'word', 'translation': 'schedule' },{ 'type': 'term', 'translation': 'spreadsheet' },{ 'type': 'term', 'translation': 'array' }],'браузер': [{ 'type': 'term', 'translation': 'browser' }],'флажок': [{ 'type': 'word', 'translation': 'flag' },{ 'type': 'term', 'translation': 'checkbox' }]}}}";
-		try {
-			JSONObject globalDictionaryObject = new JSONObject(globalDictionaryString);
-			JSONObject requestedFromDictionary = globalDictionaryObject.getJSONObject(languageFromCode);
-			JSONObject requestedToDictionary = requestedFromDictionary.getJSONObject(languageToCode);
-			JSONArray translations = requestedToDictionary.getJSONArray(word);
-			for (int i = 0; i < translations.length(); i++) {
-				JSONObject translation = translations.getJSONObject(i);
-				results.add(translation.getString("translation"));
-			}
-		} catch (JSONException e) {
-		    e.printStackTrace();
-		}
-		
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results);		
-		ListView translationsList = (ListView) findViewById(R.id.listView1);
-		translationsList.setAdapter(adapter);
-		
-		if (results.isEmpty()) {
-			Context appContext = getApplicationContext();
-			CharSequence msg = "No translations found.";
-			int duration = Toast.LENGTH_SHORT;
-			
-			Toast displayMessage = Toast.makeText(appContext, msg, duration);
-			displayMessage.show();
-		}
-		
-		// hide keyboard
-		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(searchQueryInputField.getWindowToken(), 0);
-	}*/
-	
-	public static String convertStreamToString(java.io.InputStream is) {
-	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-	    return s.hasNext() ? s.next() : "";
 	}
 }
